@@ -1,0 +1,32 @@
+CREATE TABLE `Petrol Pump` (
+    `petrolPumpID` VARCHAR(255) UNIQUE,
+    `Name` VARCHAR(255),
+    `Location` VARCHAR(255)
+);
+
+json data:
+{
+  "name": "Anurag",
+  "location": "Gomtinagar"
+}
+
+CREATE TABLE `Petrol Pump Detail` (
+    `petrolPumpID` VARCHAR(255),
+    `VehicleID` VARCHAR(255),
+    `EnteringTime` VARCHAR(255),
+    `ExitTime` VARCHAR(255),
+    `FillingTime` VARCHAR(255),
+    `Date` DATE,
+    `ServerConnected` VARCHAR(255),
+    FOREIGN KEY (`petrolPumpID`) REFERENCES `Petrol Pump`(`petrolPumpID`)
+);
+
+json data
+{
+  "petrolPumpID": "IOCL-3",
+  "vehicleID": "VH-1232",
+  "enteringTime": "10:30:00",
+  "exitTime": "10:45:00",
+  "fillingTime": "5 mins",
+  "date": "2025-01-28"
+}
