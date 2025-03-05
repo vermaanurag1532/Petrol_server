@@ -57,7 +57,7 @@ const PetrolPumpRepository = {
             `;
             connection.query(query, [id], (err, results) => {
                 if (err) reject(err);
-                else resolve(results[0] || null);
+                else resolve(results || null);
             });
         });
     },
