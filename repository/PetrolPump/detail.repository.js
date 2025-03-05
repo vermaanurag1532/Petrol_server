@@ -93,12 +93,22 @@ const PetrolPumpRepository = {
                     ServerConnected = ?
                 WHERE petrolPumpID = ? AND VehicleID = ?
             `;
+    
+            console.log("Executing Query:", query);
+            console.log("Values:", exitTime, fillingTime, serverConnected, petrolPumpID, vehicleID);
+    
             connection.query(query, [exitTime, fillingTime, serverConnected, petrolPumpID, vehicleID], (err, results) => {
-                if (err) reject(err);
-                else resolve(results);
+                if (err) {
+                    console.error("Query Error:", err);
+                    reject(err);
+                } else {
+                    console.log("Update Success:", results);
+                    resolve(results);
+                }
             });
         });
     },
+    
 
     deletePetrolPumpById: (id) => {
         return new Promise((resolve, reject) => {

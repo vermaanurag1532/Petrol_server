@@ -45,18 +45,28 @@ const PetrolPumpController = {
 
     updatePetrolPump: async (req, res) => {
         try {
+            console.log("Params:", req.params);
+            console.log("Body:", req.body);
+    
             const result = await PetrolPumpService.updatePetrolPump(
                 req.params.Pid,
                 req.params.Vid,
-                req.body.ExitTime,
-                req.body.FillingTime,
-                req.body.ServerConnected
+                req.body.exitTime,
+                req.body.fillingTime,
+                req.body.serverConnected
             );
-            res.status(200).json({ message: 'Petrol Pump updated successfully', data: result });
+    
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ message: "No matching record found" });
+            }
+    
+            res.status(200).json({ message: "Petrol Pump updated successfully", data: result });
         } catch (error) {
-            res.status(500).json({ message: 'Error updating Petrol Pump', error: error.message });
+            console.error("Update Error:", error);
+            res.status(500).json({ message: "Error updating Petrol Pump", error: error.message });
         }
     },
+    
 
     deletePetrolPumpById: async (req, res) => {
         try {
