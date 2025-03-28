@@ -13,11 +13,14 @@ json data:
 CREATE TABLE `Petrol Pump Detail` (
     `petrolPumpID` VARCHAR(255),
     `VehicleID` VARCHAR(255),
+    `VehicleType` VARCHAR(255),
+    `PetrolPumpNumber` VARCHAR(255),
+    `Helmet` BOOLEAN,
     `EnteringTime` VARCHAR(255),
     `ExitTime` VARCHAR(255),
     `FillingTime` VARCHAR(255),
     `Date` DATE,
-    `ServerConnected` VARCHAR(255),
+    `ServerUpdate` BOOLEAN,
     FOREIGN KEY (`petrolPumpID`) REFERENCES `Petrol Pump`(`petrolPumpID`)
 );
 

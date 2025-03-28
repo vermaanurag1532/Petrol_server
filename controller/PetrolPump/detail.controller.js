@@ -1,81 +1,97 @@
-import PetrolPumpService from '../../service/PetrolPump/detail.service.js';
+import petrolPumpDetailService from '../../service/PetrolPump/detail.service.js';
 
-const PetrolPumpController = {
-    createPetrolPump: async (req, res) => {
+const petrolPumpDetailController = {
+    getAllDetails: async (req, res) => {
         try {
-            const result = await PetrolPumpService.createPetrolPump(req.body);
-            res.status(201).json({ message: 'Petrol Pump created successfully', data: result });
+            const details = await petrolPumpDetailService.getAllDetails();
+            res.json(details);
         } catch (error) {
-            res.status(500).json({ message: 'Error creating Petrol Pump', error: error.message });
+            res.status(500).json({ message: error.message });
         }
     },
 
-    getAllPetrolPumps: async (req, res) => {
+    getDetailsByPetrolPumpID: async (req, res) => {
         try {
-            const result = await PetrolPumpService.getAllPetrolPumps();
-            res.status(200).json(result);
+            const details = await petrolPumpDetailService.getDetailsByPetrolPumpID(req.params.petrolPumpID);
+            res.json(details);
         } catch (error) {
-            res.status(500).json({ message: 'Error fetching Petrol Pumps', error: error.message });
+            res.status(500).json({ message: error.message });
         }
     },
 
-    getPetrolPumpById: async (req, res) => {
+    getDetailsByPetrolPumpIDAndNumber: async (req, res) => {
         try {
-            const result = await PetrolPumpService.getPetrolPumpById(req.params.id);
-            if (!result) {
-                return res.status(404).json({ message: 'Petrol Pump not found' });
+            const { petrolPumpID, petrolPumpNumber } = req.params;
+            const details = await petrolPumpDetailService.getDetailsByPetrolPumpIDAndNumber(petrolPumpID, petrolPumpNumber);
+            res.json(details);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    },
+
+    getDetailByPetrolPumpIDNumberAndVehicleID: async (req, res) => {
+        try {
+            const { petrolPumpID, petrolPumpNumber, vehicleID } = req.params;
+            const detail = await petrolPumpDetailService.getDetailByPetrolPumpIDNumberAndVehicleID(petrolPumpID, petrolPumpNumber, vehicleID);
+            if (!detail) {
+                return res.status(404).json({ message: 'Record not found' });
             }
-            res.status(200).json( result );
+            res.json(detail);
         } catch (error) {
-            res.status(500).json({ message: 'Error fetching Petrol Pump', error: error.message });
+            res.status(500).json({ message: error.message });
         }
     },
 
-    getPetrolPumpByIdAndDate: async (req, res) => {
+    addDetail: async (req, res) => {
         try {
-            const result = await PetrolPumpService.getPetrolPumpByIdAndDate(req.params.id, req.params.date);
-            if (!result) {
-                return res.status(404).json({ message: 'Petrol Pump not found' });
-            }
-            res.status(200).json(result);
+            const newDetail = await petrolPumpDetailService.addDetail(req.body);
+            res.status(201).json(newDetail);
         } catch (error) {
-            res.status(500).json({ message: 'Error fetching Petrol Pump', error: error.message });
+            res.status(400).json({ message: error.message });
         }
     },
 
-    updatePetrolPump: async (req, res) => {
+    updateDetailByPetrolPumpIDAndVehicleID: async (req, res) => {
         try {
-            console.log("Params:", req.params);
-            console.log("Body:", req.body);
-    
-            const result = await PetrolPumpService.updatePetrolPump(
-                req.params.Pid,
-                req.params.Vid,
-                req.body.exitTime,
-                req.body.fillingTime,
-                req.body.serverConnected
+            const { petrolPumpID, vehicleID } = req.params;
+            const updated = await petrolPumpDetailService.updateDetailByPetrolPumpIDAndVehicleID(
+                petrolPumpID, 
+                vehicleID, 
+                req.body
             );
-    
-            if (result.affectedRows === 0) {
-                return res.status(404).json({ message: "No matching record found" });
+            
+            if (!updated) {
+                return res.status(404).json({ message: 'Record not found or not updated' });
             }
-    
-            res.status(200).json({ message: "Petrol Pump updated successfully", data: result });
+            
+            // Return the updated record
+            const updatedRecord = await petrolPumpDetailService.getDetailByPetrolPumpIDNumberAndVehicleID(
+                petrolPumpID,
+                req.body.PetrolPumpNumber || undefined, // Use updated number if provided
+                vehicleID
+            );
+            
+            res.json({
+                message: 'Record updated successfully',
+                data: updatedRecord
+            });
         } catch (error) {
-            console.error("Update Error:", error);
-            res.status(500).json({ message: "Error updating Petrol Pump", error: error.message });
+            res.status(400).json({ message: error.message });
         }
     },
-    
 
-    deletePetrolPumpById: async (req, res) => {
+    deleteDetail: async (req, res) => {
         try {
-            const result = await PetrolPumpService.deletePetrolPumpById(req.params.id);
-            res.status(200).json({ message: 'Petrol Pump deleted successfully', data: result });
+            const { petrolPumpID, petrolPumpNumber, vehicleID } = req.params;
+            const deleted = await petrolPumpDetailService.deleteDetail(petrolPumpID, petrolPumpNumber, vehicleID);
+            if (!deleted) {
+                return res.status(404).json({ message: 'Record not found or not deleted' });
+            }
+            res.json({ message: 'Record deleted successfully' });
         } catch (error) {
-            res.status(500).json({ message: 'Error deleting Petrol Pump', error: error.message });
+            res.status(400).json({ message: error.message });
         }
-    },
+    }
 };
 
-export default PetrolPumpController;
+export default petrolPumpDetailController;

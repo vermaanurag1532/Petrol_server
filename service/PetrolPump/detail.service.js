@@ -1,73 +1,64 @@
-import PetrolPumpRepository from '../../repository/PetrolPump/detail.repository.js';
+import petrolPumpDetailRepository from '../../repository/PetrolPump/detail.repository.js';
 
-const PetrolPumpService = {
-    createPetrolPump: async (data) => {
-        try {
-            const result = await PetrolPumpRepository.createPetrolPump([
-                data.petrolPumpID,
-                data.VehicleID,
-                data.EnteringTime,
-                data.ExitTime,
-                data.FillingTime,
-                data.Date,
-                data.ServerConnected
-            ]);
-            return result;
-        } catch (error) {
-            throw error;
+class PetrolPumpDetailService {
+    async getAllDetails() {
+        return await petrolPumpDetailRepository.getAll();
+    }
+
+    async getDetailsByPetrolPumpID(petrolPumpID) {
+        return await petrolPumpDetailRepository.getByPetrolPumpID(petrolPumpID);
+    }
+
+    async getDetailsByPetrolPumpIDAndNumber(petrolPumpID, petrolPumpNumber) {
+        return await petrolPumpDetailRepository.getByPetrolPumpIDAndNumber(petrolPumpID, petrolPumpNumber);
+    }
+
+    async getDetailByPetrolPumpIDNumberAndVehicleID(petrolPumpID, petrolPumpNumber, vehicleID) {
+        return await petrolPumpDetailRepository.getByPetrolPumpIDNumberAndVehicleID(petrolPumpID, petrolPumpNumber, vehicleID);
+    }
+
+    async addDetail(petrolPumpDetail) {
+        // The VehicleID in petrolPumpDetail will be used as the suffix
+        const result = await petrolPumpDetailRepository.add(petrolPumpDetail);
+        return {
+            ...petrolPumpDetail,
+            VehicleID: result.generatedVehicleID,
+            id: result.insertId
+        };
+    }
+
+    async updateDetailByPetrolPumpIDAndVehicleID(petrolPumpID, vehicleID, updateFields) {
+        // Check if record exists
+        const existingRecords = await petrolPumpDetailRepository.getByPetrolPumpID(petrolPumpID);
+        const existing = existingRecords.find(record => record.VehicleID === vehicleID);
+        
+        if (!existing) {
+            throw new Error('Record not found');
         }
-    },
+        
+        // Only update fields that are provided in the request
+        const fieldsToUpdate = {};
+        Object.keys(updateFields).forEach(key => {
+            if (updateFields[key] !== undefined) {
+                fieldsToUpdate[key] = updateFields[key];
+            }
+        });
+        
+        return await petrolPumpDetailRepository.updateByPetrolPumpIDAndVehicleID(
+            petrolPumpID, 
+            vehicleID, 
+            fieldsToUpdate
+        );
+    }
 
-    getAllPetrolPumps: async () => {
-        try {
-            const result = await PetrolPumpRepository.getAllPetrolPumps();
-            return result;
-        } catch (error) {
-            throw error;
+    async deleteDetail(petrolPumpID, petrolPumpNumber, vehicleID) {
+        // Check if record exists
+        const existing = await petrolPumpDetailRepository.getByPetrolPumpIDNumberAndVehicleID(petrolPumpID, petrolPumpNumber, vehicleID);
+        if (!existing) {
+            throw new Error('Record not found');
         }
-    },
+        return await petrolPumpDetailRepository.delete(petrolPumpID, petrolPumpNumber, vehicleID);
+    }
+}
 
-    getPetrolPumpById: async (id) => {
-        try {
-            const result = await PetrolPumpRepository.getPetrolPumpById(id);
-            return result;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    getPetrolPumpByIdAndDate: async (id, date) => {
-        try {
-            const result = await PetrolPumpRepository.getPetrolPumpByIdAndDate(id, date);
-            return result;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    updatePetrolPump: async (petrolPumpID, vehicleID, exitTime, fillingTime, serverConnected) => {
-        try {
-            const result = await PetrolPumpRepository.updatePetrolPump(
-                petrolPumpID,
-                vehicleID,
-                exitTime,
-                fillingTime,
-                serverConnected
-            );
-            return result;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    deletePetrolPumpById: async (id) => {
-        try {
-            const result = await PetrolPumpRepository.deletePetrolPumpById(id);
-            return result;
-        } catch (error) {
-            throw error;
-        }
-    },
-};
-
-export default PetrolPumpService;
+export default new PetrolPumpDetailService();

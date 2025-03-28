@@ -1,127 +1,71 @@
-import connection from '../../db/connection.js';
+import db from '../../db/connection.js';
 
-const PetrolPumpRepository = {
-    createPetrolPump: (params) => {
-        return new Promise((resolve, reject) => {
-            const query = `
-                INSERT INTO \`Petrol Pump Detail\` (
-                    petrolPumpID, 
-                    VehicleID, 
-                    EnteringTime, 
-                    ExitTime, 
-                    FillingTime, 
-                    Date,
-                    ServerConnected
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
-            `;
-            connection.query(query, params, (err, results) => {
-                if (err) reject(err);
-                else resolve(results);
-            });
-        });
-    },
+class PetrolPumpDetailRepository {
+    async getAll() {
+        const query = 'SELECT * FROM `Petrol Pump Detail`';
+        const [rows] = await db.promise().query(query);
+        return rows;
+    }
 
-    getAllPetrolPumps: () => {
-        return new Promise((resolve, reject) => {
-            const query = `
-                SELECT 
-                    petrolPumpID, 
-                    VehicleID, 
-                    EnteringTime, 
-                    ExitTime, 
-                    FillingTime, 
-                    Date,
-                    ServerConnected
-                FROM \`Petrol Pump Detail\`
-            `;
-            connection.query(query, (err, results) => {
-                if (err) reject(err);
-                else resolve(results);
-            });
-        });
-    },
+    async getByPetrolPumpID(petrolPumpID) {
+        const query = 'SELECT * FROM `Petrol Pump Detail` WHERE petrolPumpID = ?';
+        const [rows] = await db.promise().query(query, [petrolPumpID]);
+        return rows;
+    }
 
-    getPetrolPumpById: (id) => {
-        return new Promise((resolve, reject) => {
-            const query = `
-                SELECT 
-                    petrolPumpID, 
-                    VehicleID, 
-                    EnteringTime, 
-                    ExitTime, 
-                    FillingTime, 
-                    Date,
-                    ServerConnected
-                FROM \`Petrol Pump Detail\`
-                WHERE petrolPumpID = ?
-            `;
-            connection.query(query, [id], (err, results) => {
-                if (err) reject(err);
-                else resolve(results || null);
-            });
-        });
-    },
+    async getByPetrolPumpIDAndNumber(petrolPumpID, petrolPumpNumber) {
+        const query = 'SELECT * FROM `Petrol Pump Detail` WHERE petrolPumpID = ? AND PetrolPumpNumber = ?';
+        const [rows] = await db.promise().query(query, [petrolPumpID, petrolPumpNumber]);
+        return rows;
+    }
 
-    getPetrolPumpByIdAndDate: (id, date) => {
-        return new Promise((resolve, reject) => {
-            const query = `
-                SELECT 
-                    petrolPumpID, 
-                    VehicleID, 
-                    EnteringTime, 
-                    ExitTime, 
-                    FillingTime, 
-                    Date,
-                    ServerConnected
-                FROM \`Petrol Pump Detail\`
-                WHERE petrolPumpID = ? AND Date = ?
-            `;
-            connection.query(query, [id, date], (err, results) => {
-                if (err) reject(err);
-                else resolve(results[0] || null);
-            });
-        });
-    },
+    async getByPetrolPumpIDNumberAndVehicleID(petrolPumpID, petrolPumpNumber, vehicleID) {
+        const query = 'SELECT * FROM `Petrol Pump Detail` WHERE petrolPumpID = ? AND PetrolPumpNumber = ? AND VehicleID = ?';
+        const [rows] = await db.promise().query(query, [petrolPumpID, petrolPumpNumber, vehicleID]);
+        return rows[0] || null;
+    }
 
-    updatePetrolPump: (petrolPumpID, vehicleID, exitTime, fillingTime, serverConnected) => {
-        return new Promise((resolve, reject) => {
-            const query = `
-                UPDATE \`Petrol Pump Detail\`
-                SET  
-                    ExitTime = ?, 
-                    FillingTime = ?,
-                    ServerConnected = ?
-                WHERE petrolPumpID = ? AND VehicleID = ?
-            `;
-    
-            console.log("Executing Query:", query);
-            console.log("Values:", exitTime, fillingTime, serverConnected, petrolPumpID, vehicleID);
-    
-            connection.query(query, [exitTime, fillingTime, serverConnected, petrolPumpID, vehicleID], (err, results) => {
-                if (err) {
-                    console.error("Query Error:", err);
-                    reject(err);
-                } else {
-                    console.log("Update Success:", results);
-                    resolve(results);
-                }
-            });
-        });
-    },
-    
+    async add(petrolPumpDetail) {
+        // Generate the custom VehicleID
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const currentTime = `${hours}${minutes}${seconds}`;
+        
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const currentDate = `${year}${month}${day}`;
+        
+        // Generate the new VehicleID
+        const generatedVehicleID = `${currentTime}-${currentDate}-${petrolPumpDetail.VehicleID}`;
+        
+        // Create the complete record with generated ID
+        const completeRecord = {
+            ...petrolPumpDetail,
+            VehicleID: generatedVehicleID
+        };
 
-    deletePetrolPumpById: (id) => {
-        return new Promise((resolve, reject) => {
-            const query = `
-                DELETE FROM \`Petrol Pump Detail\`
-                WHERE petrolPumpID = ?
-            `;
-            connection.query(query, [id], (err, results) => {
-                if (err) reject(err);
-                else resolve(results);
-            });
-        });
-    },
-};
+        const query = 'INSERT INTO `Petrol Pump Detail` SET ?';
+        const [result] = await db.promise().query(query, [completeRecord]);
+        return {
+            insertId: result.insertId,
+            generatedVehicleID: generatedVehicleID
+        };
+    }
 
-export default PetrolPumpRepository;
+    async updateByPetrolPumpIDAndVehicleID(petrolPumpID, vehicleID, petrolPumpDetail) {
+        const query = 'UPDATE `Petrol Pump Detail` SET ? WHERE petrolPumpID = ? AND VehicleID = ?';
+        const [result] = await db.promise().query(query, [petrolPumpDetail, petrolPumpID, vehicleID]);
+        return result.affectedRows > 0;
+    }
+
+    async delete(petrolPumpID, petrolPumpNumber, vehicleID) {
+        const query = 'DELETE FROM `Petrol Pump Detail` WHERE petrolPumpID = ? AND PetrolPumpNumber = ? AND VehicleID = ?';
+        const [result] = await db.promise().query(query, [petrolPumpID, petrolPumpNumber, vehicleID]);
+        return result.affectedRows > 0;
+    }
+}
+
+export default new PetrolPumpDetailRepository();

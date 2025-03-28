@@ -4,12 +4,13 @@ import PetrolPumpDetailController from '../controller/PetrolPump/detail.controll
 
 const PetrolPumpRouter = express.Router();
 
-PetrolPumpRouter.post('/detail', PetrolPumpDetailController.createPetrolPump); 
-PetrolPumpRouter.get('/detail', PetrolPumpDetailController.getAllPetrolPumps); 
-PetrolPumpRouter.get('/detail/:id', PetrolPumpDetailController.getPetrolPumpById); 
-PetrolPumpRouter.get('/detail/:id/:date', PetrolPumpDetailController.getPetrolPumpByIdAndDate);
-PetrolPumpRouter.put('/detail/:Pid/:Vid', PetrolPumpDetailController.updatePetrolPump); 
-PetrolPumpRouter.delete('/detail/:id', PetrolPumpDetailController.deletePetrolPumpById); 
+PetrolPumpRouter.get('/details', PetrolPumpDetailController.getAllDetails);
+PetrolPumpRouter.get('/details/:petrolPumpID', PetrolPumpDetailController.getDetailsByPetrolPumpID);
+PetrolPumpRouter.get('/details/:petrolPumpID/:petrolPumpNumber', PetrolPumpDetailController.getDetailsByPetrolPumpIDAndNumber);
+PetrolPumpRouter.get('/details/:petrolPumpID/:petrolPumpNumber/:vehicleID', PetrolPumpDetailController.getDetailByPetrolPumpIDNumberAndVehicleID);
+PetrolPumpRouter.post('/details/', PetrolPumpDetailController.addDetail);
+PetrolPumpRouter.put('/details/:petrolPumpID/vehicle/:vehicleID', PetrolPumpDetailController.updateDetailByPetrolPumpIDAndVehicleID);
+PetrolPumpRouter.delete('/details/:petrolPumpID/:petrolPumpNumber/:vehicleID', PetrolPumpDetailController.deleteDetail);
 
 PetrolPumpRouter.post('/', PetrolPumpController.createPetrolPump); 
 PetrolPumpRouter.get('/', PetrolPumpController.getAllPetrolPumps); 
