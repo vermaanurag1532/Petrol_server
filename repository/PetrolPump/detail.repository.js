@@ -1,109 +1,50 @@
-import petrolPumpDetailService from '../../service/PetrolPump/detail.service.js';
+import db from '../../db/connection.js';
 
-const petrolPumpDetailController = {
-  getAllDetails: async (req, res) => {
-    try {
-      const details = await petrolPumpDetailService.getAllDetails();
-      res.json(details);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  },
-
-  getDetailsByPetrolPumpID: async (req, res) => {
-    try {
-      const details = await petrolPumpDetailService.getDetailsByPetrolPumpID(req.params.petrolPumpID);
-      res.json(details);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  },
-
-  getDetailsByPetrolPumpIDAndNumber: async (req, res) => {
-    try {
-      const { petrolPumpID, petrolPumpNumber } = req.params;
-      const details = await petrolPumpDetailService.getDetailsByPetrolPumpIDAndNumber(petrolPumpID, petrolPumpNumber);
-      res.json(details);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  },
-
-  getDetailByPetrolPumpIDNumberAndVehicleID: async (req, res) => {
-    try {
-      const { petrolPumpID, petrolPumpNumber, vehicleID } = req.params;
-      const detail = await petrolPumpDetailService.getDetailByPetrolPumpIDNumberAndVehicleID(petrolPumpID, petrolPumpNumber, vehicleID);
-      if (!detail) {
-        return res.status(404).json({ message: 'Record not found' });
-      }
-      res.json(detail);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  },
-
-  addDetail: async (req, res) => {
-    try {
-      const newDetail = await petrolPumpDetailService.addDetail(req.body);
-      res.status(201).json(newDetail);
-
-      // 🔥 Emit to frontend
-      global.io.emit('detailUpdated', { type: 'add', data: newDetail });
-    } catch (error) {
-      res.status(400).json({ message: error.message });
-    }
-  },
-
-  updateDetailByPetrolPumpIDAndVehicleID: async (req, res) => {
-    try {
-      const { petrolPumpID, vehicleID } = req.params;
-      const updated = await petrolPumpDetailService.updateDetailByPetrolPumpIDAndVehicleID(
-        petrolPumpID,
-        vehicleID,
-        req.body
-      );
-
-      if (!updated) {
-        return res.status(404).json({ message: 'Record not found or not updated' });
-      }
-
-      const updatedRecord = await petrolPumpDetailService.getDetailByPetrolPumpIDNumberAndVehicleID(
-        petrolPumpID,
-        req.body.PetrolPumpNumber || undefined,
-        vehicleID
-      );
-
-      res.json({
-        message: 'Record updated successfully',
-        data: updatedRecord
-      });
-
-      // 🔥 Emit update event
-      global.io.emit('detailUpdated', { type: 'update', data: updatedRecord });
-    } catch (error) {
-      res.status(400).json({ message: error.message });
-    }
-  },
-
-  deleteDetail: async (req, res) => {
-    try {
-      const { petrolPumpID, petrolPumpNumber, vehicleID } = req.params;
-      const deleted = await petrolPumpDetailService.deleteDetail(petrolPumpID, petrolPumpNumber, vehicleID);
-      if (!deleted) {
-        return res.status(404).json({ message: 'Record not found or not deleted' });
-      }
-
-      res.json({ message: 'Record deleted successfully' });
-
-      // 🔥 Emit delete event
-      global.io.emit('detailUpdated', {
-        type: 'delete',
-        data: { petrolPumpID, petrolPumpNumber, vehicleID }
-      });
-    } catch (error) {
-      res.status(400).json({ message: error.message });
-    }
+class PetrolPumpDetailRepository {
+  async getAll() {
+    const query = 'SELECT * FROM `Petrol Pump Detail`';
+    const [rows] = await db.promise().query(query);
+    return rows;
   }
-};
 
-export default petrolPumpDetailController;
+  async getByPetrolPumpID(petrolPumpID) {
+    const query = 'SELECT * FROM `Petrol Pump Detail` WHERE petrolPumpID = ?';
+    const [rows] = await db.promise().query(query, [petrolPumpID]);
+    return rows;
+  }
+
+  async getByPetrolPumpIDAndNumber(petrolPumpID, petrolPumpNumber) {
+    const query = 'SELECT * FROM `Petrol Pump Detail` WHERE petrolPumpID = ? AND petrolPumpNumber = ?';
+    const [rows] = await db.promise().query(query, [petrolPumpID, petrolPumpNumber]);
+    return rows;
+  }
+
+  async getByPetrolPumpIDNumberAndVehicleID(petrolPumpID, petrolPumpNumber, vehicleID) {
+    const query = 'SELECT * FROM `Petrol Pump Detail` WHERE petrolPumpID = ? AND petrolPumpNumber = ? AND VehicleID = ?';
+    const [rows] = await db.promise().query(query, [petrolPumpID, petrolPumpNumber, vehicleID]);
+    return rows[0];
+  }
+
+  async add(petrolPumpDetail) {
+    const query = 'INSERT INTO `Petrol Pump Detail` SET ?';
+    const [result] = await db.promise().query(query, [petrolPumpDetail]);
+    return { insertId: result.insertId, generatedVehicleID: petrolPumpDetail.VehicleID };
+  }
+
+  async updateByPetrolPumpIDAndVehicleID(petrolPumpID, vehicleID, fieldsToUpdate) {
+    let setClause = Object.keys(fieldsToUpdate).map(key => `${key} = ?`).join(', ');
+    let values = Object.values(fieldsToUpdate);
+    values.push(petrolPumpID, vehicleID);
+    const query = `UPDATE \`Petrol Pump Detail\` SET ${setClause} WHERE petrolPumpID = ? AND VehicleID = ?`;
+    const [result] = await db.promise().query(query, values);
+    return result.affectedRows > 0;
+  }
+
+  async delete(petrolPumpID, petrolPumpNumber, vehicleID) {
+    const query = 'DELETE FROM `Petrol Pump Detail` WHERE petrolPumpID = ? AND petrolPumpNumber = ? AND VehicleID = ?';
+    const [result] = await db.promise().query(query, [petrolPumpID, petrolPumpNumber, vehicleID]);
+    return result.affectedRows > 0;
+  }
+}
+
+export default new PetrolPumpDetailRepository();
