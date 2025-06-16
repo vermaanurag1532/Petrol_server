@@ -1,70 +1,78 @@
 import PetrolPumpService from '../../service/PetrolPump/petrolPump.service.js';
 
 const PetrolPumpController = {
-    createPetrolPump: async (req, res) => {
-        try {
-            const { name, location, VehicleID} = req.body;
-            const result = await PetrolPumpService.createPetrolPump(name, location, VehicleID);
-            res.status(201).json({ message: 'Petrol Pump created successfully', result });
-        } catch (error) {
-            console.error('Error creating petrol pump:', error.message);
-            res.status(500).json({ message: 'Internal server error', error: error.message });
-        }
-    },
+  createPetrolPump: async (req, res) => {
+    try {
+      const { name, location, VehicleID } = req.body;
+      const result = await PetrolPumpService.createPetrolPump(name, location, VehicleID);
+      res.status(201).json({ message: 'Petrol Pump created successfully', result });
 
-    getAllPetrolPumps: async (req, res) => {
-        try {
-            const result = await PetrolPumpService.getAllPetrolPumps();
-            res.status(200).json(result);
-        } catch (error) {
-            console.error('Error fetching petrol pumps:', error.message);
-            res.status(500).json({ message: 'Internal server error', error: error.message });
-        }
-    },
-
-    getPetrolPumpById: async (req, res) => {
-        try {
-            const { id } = req.params;
-            const result = await PetrolPumpService.getPetrolPumpById(id);
-            if (result) {
-                res.status(200).json(result);
-            } else {
-                res.status(404).json({ message: 'Petrol Pump not found' });
-            }
-        } catch (error) {
-            console.error('Error fetching petrol pump by ID:', error.message);
-            res.status(500).json({ message: 'Internal server error', error: error.message });
-        }
-    },
-
-    updatePetrolPump: async (req, res) => {
-        try {
-            const { id } = req.params;
-            const updateFields = req.body;
-    
-            if (Object.keys(updateFields).length === 0) {
-                return res.status(400).json({ message: 'No fields provided to update' });
-            }
-    
-            const result = await PetrolPumpService.updatePetrolPump(id, updateFields);
-            res.status(200).json({ message: 'Petrol Pump updated successfully', result });
-        } catch (error) {
-            console.error('Error updating petrol pump:', error.message);
-            res.status(500).json({ message: 'Internal server error', error: error.message });
-        }
-    },
-    
-
-    deletePetrolPumpById: async (req, res) => {
-        try {
-            const { id } = req.params;
-            const result = await PetrolPumpService.deletePetrolPumpById(id);
-            res.status(200).json({ message: 'Petrol Pump deleted successfully', result });
-        } catch (error) {
-            console.error('Error deleting petrol pump:', error.message);
-            res.status(500).json({ message: 'Internal server error', error: error.message });
-        }
+      // 🔥 Emit create event
+      global.io.emit('pumpUpdated', { type: 'add', data: result });
+    } catch (error) {
+      console.error('Error creating petrol pump:', error.message);
+      res.status(500).json({ message: 'Internal server error', error: error.message });
     }
+  },
+
+  getAllPetrolPumps: async (req, res) => {
+    try {
+      const result = await PetrolPumpService.getAllPetrolPumps();
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('Error fetching petrol pumps:', error.message);
+      res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+  },
+
+  getPetrolPumpById: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await PetrolPumpService.getPetrolPumpById(id);
+      if (result) {
+        res.status(200).json(result);
+      } else {
+        res.status(404).json({ message: 'Petrol Pump not found' });
+      }
+    } catch (error) {
+      console.error('Error fetching petrol pump by ID:', error.message);
+      res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+  },
+
+  updatePetrolPump: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updateFields = req.body;
+
+      if (Object.keys(updateFields).length === 0) {
+        return res.status(400).json({ message: 'No fields provided to update' });
+      }
+
+      const result = await PetrolPumpService.updatePetrolPump(id, updateFields);
+      res.status(200).json({ message: 'Petrol Pump updated successfully', result });
+
+      // 🔥 Emit update event
+      global.io.emit('pumpUpdated', { type: 'update', data: { id, ...updateFields } });
+    } catch (error) {
+      console.error('Error updating petrol pump:', error.message);
+      res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+  },
+
+  deletePetrolPumpById: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await PetrolPumpService.deletePetrolPumpById(id);
+      res.status(200).json({ message: 'Petrol Pump deleted successfully', result });
+
+      // 🔥 Emit delete event
+      global.io.emit('pumpUpdated', { type: 'delete', data: { id } });
+    } catch (error) {
+      console.error('Error deleting petrol pump:', error.message);
+      res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+  }
 };
 
 export default PetrolPumpController;

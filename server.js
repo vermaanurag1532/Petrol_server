@@ -1,23 +1,27 @@
 import express from 'express';
+import http from 'http'; // Add this
+import { Server } from 'socket.io'; // Add this
 import cors from 'cors';
 import petrolPumpRouter from './routes/petrolPump.router.js';
 
 const app = express();
-const PORT = 3000;
+const server = http.createServer(app); // Use this instead of app.listen
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  },
+});
 
-// ✅ Move this to the top
-app.use(cors({
-  origin: '*',  // Allow all origins
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+// Expose io globally or export if needed in controllers
+global.io = io;
 
-// Middleware for JSON parsing
+// Middleware
+app.use(cors());
 app.use(express.json());
-
-// ✅ Remove the duplicate CORS middleware (not needed)
 app.use('/PetrolPumps', petrolPumpRouter);
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+const PORT = 3000;
+server.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
