@@ -1,7 +1,8 @@
 CREATE TABLE `Petrol Pump` (
     `petrolPumpID` VARCHAR(255) UNIQUE,
     `Name` VARCHAR(255),
-    `Location` VARCHAR(255)
+    `Location` VARCHAR(255),
+    `VehicleID` INT
 );
 
 json data:

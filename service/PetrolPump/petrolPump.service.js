@@ -1,7 +1,7 @@
 import PetrolPumpRepository from '../../repository/PetrolPump/petrolPump.repository.js';
 
 const PetrolPumpService = {
-    createPetrolPump: async (name, location) => {
+    createPetrolPump: async (name, location , VehicleID) => {
         const lastID = await PetrolPumpRepository.getLastPetrolPumpID();
         console.log("Last ID fetched: ", lastID); // Add this line
 
@@ -16,7 +16,7 @@ const PetrolPumpService = {
 
         console.log("New ID generated: ", newID); // Add this line
 
-        return await PetrolPumpRepository.insertPetrolPump([newID, name, location]);
+        return await PetrolPumpRepository.insertPetrolPump([newID, name, location, VehicleID]);
     },
 
     getAllPetrolPumps: async () => {
@@ -27,9 +27,9 @@ const PetrolPumpService = {
         return await PetrolPumpRepository.getPetrolPumpById(id);
     },
 
-    updatePetrolPump: async (id, name, location) => {
-        return await PetrolPumpRepository.updatePetrolPump([name, location, id]);
-    },
+    updatePetrolPump: async (id, updateFields) => {
+        return await PetrolPumpRepository.updatePetrolPump(id, updateFields);
+    },    
 
     deletePetrolPumpById: async (id) => {
         return await PetrolPumpRepository.deletePetrolPumpById(id);

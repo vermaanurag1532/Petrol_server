@@ -3,8 +3,8 @@ import PetrolPumpService from '../../service/PetrolPump/petrolPump.service.js';
 const PetrolPumpController = {
     createPetrolPump: async (req, res) => {
         try {
-            const { name, location } = req.body;
-            const result = await PetrolPumpService.createPetrolPump(name, location);
+            const { name, location, VehicleID} = req.body;
+            const result = await PetrolPumpService.createPetrolPump(name, location, VehicleID);
             res.status(201).json({ message: 'Petrol Pump created successfully', result });
         } catch (error) {
             console.error('Error creating petrol pump:', error.message);
@@ -40,14 +40,20 @@ const PetrolPumpController = {
     updatePetrolPump: async (req, res) => {
         try {
             const { id } = req.params;
-            const { name, location } = req.body;
-            const result = await PetrolPumpService.updatePetrolPump(id, name, location);
+            const updateFields = req.body;
+    
+            if (Object.keys(updateFields).length === 0) {
+                return res.status(400).json({ message: 'No fields provided to update' });
+            }
+    
+            const result = await PetrolPumpService.updatePetrolPump(id, updateFields);
             res.status(200).json({ message: 'Petrol Pump updated successfully', result });
         } catch (error) {
             console.error('Error updating petrol pump:', error.message);
             res.status(500).json({ message: 'Internal server error', error: error.message });
         }
     },
+    
 
     deletePetrolPumpById: async (req, res) => {
         try {

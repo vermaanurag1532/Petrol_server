@@ -4,8 +4,8 @@ const PetrolPumpRepository = {
     insertPetrolPump: (params) => {
         return new Promise((resolve, reject) => {
             const query = `
-                INSERT INTO \`Petrol Pump\` (\`petrolPumpID\`, \`Name\`, \`Location\`) 
-                VALUES (?, ?, ?)
+                INSERT INTO \`Petrol Pump\` (\`petrolPumpID\`, \`Name\`, \`Location\` ,\`VehicleID\`) 
+                VALUES (?, ?, ?, ?)
             `;
             connection.query(query, params, (err, results) => {
                 if (err) reject(err);
@@ -17,7 +17,7 @@ const PetrolPumpRepository = {
     getAllPetrolPumps: () => {
         return new Promise((resolve, reject) => {
             const query = `
-                SELECT \`petrolPumpID\`, \`Name\`, \`Location\`
+                SELECT \`petrolPumpID\`, \`Name\`, \`Location\`, \`VehicleID\`
                 FROM \`Petrol Pump\`
             `;
             connection.query(query, (err, results) => {
@@ -30,7 +30,7 @@ const PetrolPumpRepository = {
     getPetrolPumpById: (id) => {
         return new Promise((resolve, reject) => {
             const query = `
-                SELECT \`petrolPumpID\`, \`Name\`, \`Location\`
+                SELECT \`petrolPumpID\`, \`Name\`, \`Location\`, \`VehicleID\`
                 FROM \`Petrol Pump\`
                 WHERE \`PetrolPumpID\` = ?
             `;
@@ -41,19 +41,25 @@ const PetrolPumpRepository = {
         });
     },
 
-    updatePetrolPump: (params) => {
+    updatePetrolPump: (id, updateFields) => {
         return new Promise((resolve, reject) => {
+            const keys = Object.keys(updateFields);
+            const values = Object.values(updateFields);
+    
+            const setClause = keys.map(key => `\`${key}\` = ?`).join(', ');
             const query = `
                 UPDATE \`Petrol Pump\`
-                SET \`Name\` = ?, \`Location\` = ?
+                SET ${setClause}
                 WHERE \`petrolPumpID\` = ?
             `;
-            connection.query(query, params, (err, results) => {
+    
+            connection.query(query, [...values, id], (err, results) => {
                 if (err) reject(err);
                 else resolve(results);
             });
         });
     },
+    
 
     deletePetrolPumpById: (id) => {
         return new Promise((resolve, reject) => {
