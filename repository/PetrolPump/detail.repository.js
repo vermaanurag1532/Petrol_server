@@ -2,28 +2,43 @@ import db from '../../db/connection.js';
 
 class PetrolPumpDetailRepository {
     async getAll() {
-        const query = 'SELECT * FROM `Petrol Pump Detail`';
+        const query = `
+            SELECT * FROM \`Petrol Pump Detail\` 
+            ORDER BY Date DESC, EnteringTime DESC
+        `;
         const [rows] = await db.promise().query(query);
         return rows;
     }
-
+    
     async getByPetrolPumpID(petrolPumpID) {
-        const query = 'SELECT * FROM `Petrol Pump Detail` WHERE petrolPumpID = ?';
+        const query = `
+            SELECT * FROM \`Petrol Pump Detail\` 
+            WHERE petrolPumpID = ?
+            ORDER BY Date DESC, EnteringTime DESC
+        `;
         const [rows] = await db.promise().query(query, [petrolPumpID]);
         return rows;
     }
-
+    
     async getByPetrolPumpIDAndNumber(petrolPumpID, petrolPumpNumber) {
-        const query = 'SELECT * FROM `Petrol Pump Detail` WHERE petrolPumpID = ? AND PetrolPumpNumber = ?';
+        const query = `
+            SELECT * FROM \`Petrol Pump Detail\` 
+            WHERE petrolPumpID = ? AND PetrolPumpNumber = ?
+            ORDER BY Date DESC, EnteringTime DESC
+        `;
         const [rows] = await db.promise().query(query, [petrolPumpID, petrolPumpNumber]);
         return rows;
     }
-
+    
     async getByPetrolPumpIDNumberAndVehicleID(petrolPumpID, petrolPumpNumber, vehicleID) {
-        const query = 'SELECT * FROM `Petrol Pump Detail` WHERE petrolPumpID = ? AND PetrolPumpNumber = ? AND VehicleID = ?';
+        const query = `
+            SELECT * FROM \`Petrol Pump Detail\` 
+            WHERE petrolPumpID = ? AND PetrolPumpNumber = ? AND VehicleID = ?
+            ORDER BY Date DESC, EnteringTime DESC
+        `;
         const [rows] = await db.promise().query(query, [petrolPumpID, petrolPumpNumber, vehicleID]);
         return rows[0] || null;
-    }
+    }    
 
     async add(petrolPumpDetail) {
         // Generate the custom VehicleID
