@@ -42,10 +42,30 @@ class PetrolPumpDetailRepository {
   }
 
   async add(petrolPumpDetail) {
+    // Get current date and time
+    const now = new Date();
+  
+    // Format time as HHMMSS
+    const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, '');
+  
+    // Format date as DDMMYYYY
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+    const year = now.getFullYear();
+    const dateStr = `${day}${month}${year}`;
+  
+    // Create new VehicleID string
+    const newVehicleID = `${timeStr}-${dateStr}-${petrolPumpDetail.VehicleID}`;
+  
+    // Override the VehicleID with the new one
+    petrolPumpDetail.VehicleID = newVehicleID;
+  
     const query = 'INSERT INTO `Petrol Pump Detail` SET ?';
     const [result] = await db.promise().query(query, [petrolPumpDetail]);
-    return { insertId: result.insertId, generatedVehicleID: petrolPumpDetail.VehicleID };
+  
+    return { insertId: result.insertId, generatedVehicleID: newVehicleID };
   }
+  
 
   async updateByPetrolPumpIDAndVehicleID(petrolPumpID, vehicleID, fieldsToUpdate) {
     const setClause = Object.keys(fieldsToUpdate)
